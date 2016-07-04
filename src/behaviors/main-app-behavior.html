@@ -1,0 +1,126 @@
+<link rel="import" href="../../bower_components/app-storage/app-network-status-behavior.html">
+<link ref="import" href="../data-state-handlers/js">
+<script>
+  (function(){
+    'use strict';
+
+    Polymer.MainAppBehaviorImpl = {
+
+      properties: {
+        route: {
+          type: Object,
+          reflectToAttribute: true
+        },
+        user: {
+          type: Object,
+          reflectToAttribute: true,
+          value: null
+        },
+        isEditable: {
+          type: Boolean,
+          readOnly: true,
+          reflectToAttribute: true,
+          value: false,
+          computed: '_checkEditable(user, online)'
+        },
+        page: {
+          type: String,
+          notify: true,
+        },
+        pageId: {
+          type: String,
+          notify: true
+        },
+      },
+
+      get _randomStringPool() {
+        return 'abcdefghijklmnopqrstuvwxyz';
+      },
+
+      get _randomStringLength() {
+        return 10;
+      },
+
+      get _todayUTCString() {
+        return new Date.toUTCString();
+      },
+
+      _checkEditable(u, o) {
+        // TODO: change to check if user is a contributor
+        return u && o;
+      },
+
+      _gotoPage(page, pageId = '', action, name = 'New Window') {
+        var url = action && typeof action === 'string' ? `/${page}/${pageId}/${action}` :  `/${page}/${pageId}`;
+        if (window.history && window.history.pushState) {
+          window.history.pushState({}, name, url);
+          this.importHref(
+            this.resolveUrl(`/src/pages/${page}.html`), null, null, true);
+        } else {
+          window.location.href = url;
+        }
+      },
+
+      _setOwner(group, id) {
+        return new Promise(function(resolve, reject){
+          if (group && typeof group === 'string' && id) {
+            this.ownerRef.save(`${group}/${id}`).then(function(){
+              this.ownerRef.data = this.user.uid;
+              resolve();
+            }.bind(this)).catch(function(error) {
+              reject(error);
+            }.bind(this));
+          } else {
+            this.$.toaster.show(`Cannot set owner for ${id ? id : 'new object'}`);
+            reject(new Error('No id or group path for owner present'));
+          }
+        }.bind(this));
+      },
+
+      insertNew(e) {
+        if (this.isEditable) {
+          if (!this.$.createNewTitle.value || this.$.createNewTitle.value.trim().length == 0) {
+            this.$.toaster.show('Please put a title before creating');
+            return;
+          }
+          var randomString = chance.string({length: this._randomStringLength ,pool: this._randomStringPool});
+          var sluggedTitle = slug(`${this.$.createNewTitle.value} slug--${randomString}`);
+          this.$.createNewFab.setAttribute('disabled', true);
+          if (this.page === 'article-page') {
+            this._insertNewArticle(sluggedTitle, e);
+          }
+        } else {
+          this.$.toaster.show(`You are not authorized to create a new ${page.split('-').join(' ')}`);
+        }
+      },
+
+      signIn() {
+        this.$.auth.signInWithPopup().then(function(result) {
+          this.$.toaster.show(`Welcome ${result.user.displayName}!`);
+        }.bind(this)).catch(this._catchError.bind(this));
+      },
+
+      signOut() {
+        if (this.$.auth) {
+          this.$.auth.signOut().then(function() {
+            this.$.toaster.show(`Goodbye!`);
+          }.bind(this)).catch(this._catchError.bind(this));
+        } else {
+          this.$.toaster.show('You are already logged out.');
+        }
+      },
+
+      _catchError(error) {
+        console.log(error);
+        this.$.toaster.show(`Error: ${error.message}`);
+        if (this.$.createNewFab) {
+          this.$.createNewFab.removeAttribute('disabled');
+        }
+      },
+    };
+    Polymer.MainAppBehavior = [
+      Polymer.AppNetworkStatusBehavior,
+      Polymer.MainAppBehaviorImpl
+    ];
+  })();
+</script>

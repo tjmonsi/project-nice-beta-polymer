@@ -1,0 +1,292 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/app-layout/app-scrollpos-control/app-scrollpos-control.html">
+
+<!-- data-state-handlers -->
+<link rel="import" href="data-state-handlers/app-route">
+<link rel="import" href="data-state-handlers/firebase-with-storage">
+
+<!-- atom components -->
+<link rel="import" href="components/atoms/shared-styles">
+<link rel="import" href="components/atoms/iron">
+<link rel="import" href="components/atoms/paper">
+
+<!-- behaviors -->
+<link rel="import" href="behaviors/main-app-behavior.html">
+
+<dom-module id="main-app">
+
+  <template>
+
+    <style>
+
+      :host {
+        display: block;
+        --app-primary-color: #4285f4;
+        --app-secondary-color: black;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      app-header {
+        background-color: var(--app-primary-color);
+        color: #fff;
+      }
+
+      paper-tabs .link {
+        @apply(--layout-horizontal);
+        @apply(--layout-center-center);
+        color: inherit;
+        text-decoration: none;
+      }
+
+
+    </style>
+
+    <app-location route="{{route}}"></app-location>
+    <app-route
+        route="{{route}}"
+        pattern="/:page"
+        data="{{routeData}}"
+        tail="{{subroute}}"></app-route>
+
+    <firebase-app-with-storage
+      api-key="AIzaSyBzGu9Aq0wiRaZ1IzXnDFw-h1nr4hW86yI"
+      auth-domain="project-nice-polymer.firebaseapp.com"
+      database-url="https://project-nice-polymer.firebaseio.com"
+      storage-bucket="project-nice-polymer.appspot.com">
+    </firebase-app>
+
+    <firebase-auth
+      id="auth"
+      provider="google"
+      signed-in="{{signedIn}}"
+      user="{{user}}">
+    </firebase-auth>
+
+    <app-scrollpos-control selected="{{page}}"></app-scrollpos-control>
+
+    <iron-media-query
+        query="[[_computeMediaQuery()]]"
+        on-query-matches-changed="_onQueryMatchesChanged"></iron-media-query>
+
+    <app-drawer-layout force-narrow fullbleed id="main-app-drawer-layout">
+
+      <!-- Drawer content -->
+      <app-drawer>
+        <app-toolbar>{{appTitle}}</app-toolbar>
+        <paper-menu attr-for-selected="name" selected="{{page}}" role="navigation" class="drawer-list">
+          <template is="dom-repeat" items="{{menu}}">
+            <template is="dom-if" if="{{checkMenuAuth(item.auth, user)}}">
+              <a href="{{item.href}}" name="{{item.name}}" tabindex="-1">
+                <paper-item>{{item.label}}</paper-item>
+              </a>
+            </template>
+          </template>
+        </paper-menu>
+      </app-drawer>
+
+      <!-- Main content -->
+      <app-header-layout has-scrolling-region>
+
+        <app-header condenses reveals effects="waterfall">
+          <app-toolbar>
+            <paper-icon-button icon="menu" drawer-toggle class$="{{showMenuButton}}"></paper-icon-button>
+            <div title>{{appTitle}}</div>
+            <paper-tabs attr-for-selected="name" selected="{{page}}" role="navigation" class$="{{showHeaderMenu}}">
+              <template is="dom-repeat" items="{{menu}}">
+                <template is="dom-if" if="{{checkMenuAuth(item.auth, user)}}">
+                  <paper-tab name="{{item.name}}">
+                    <a href="{{item.href}}" class="link" tabindex="-1">
+                      {{item.label}}
+                    </a>
+                  </paper-tab>
+                </template>
+              </template>
+            </paper-tabs>
+            <paper-tabs no-bar selected="[[page]]" attr-for-selected="name">
+              <template is="dom-if" if="{{!user}}">
+                <paper-tab on-click="signIn">
+                  Login
+                </paper-tab>
+              </template>
+              <template is="dom-if" if="{{user}}">
+                <paper-tab on-tap="signOut">
+                  Logout
+                </paper-tab>
+              </template>
+              <template is="dom-if" if="{{online}}">
+                <paper-tab>
+                  <iron-icon icon="cloud-off"></iron-icon>
+                </paper-tab>
+              </template>
+            </paper-tabs>
+          </app-toolbar>
+        </app-header>
+
+        <iron-pages role="main" selected="[[page]]" attr-for-selected="name">
+          <home-page
+            name="home-page">
+          </home-page>
+
+          <article-page
+            name="article-page"
+            route="{{subroute}}"
+            user="{{user}}">
+          </article-page>
+
+          <inforgraph-page
+            name="infograph-page">
+          </infograph-page>
+
+          <dashboard-page
+            name="dashboard-page">
+          </dashboard-page>
+
+          <profile-page
+            name="profile-page">
+          </profile-page>
+
+          <open-data-page
+            name="open-data-page">
+          </open-data-page>
+        </iron-pages>
+
+      </app-header-layout>
+
+    </app-drawer-layout>
+    <paper-toast id="toaster"></paper-toast>
+  </template>
+
+  <script>
+
+    Polymer({
+
+      is: 'main-app',
+
+      properties: {
+
+        page: {
+          type: String,
+          reflectToAttribute: true,
+          observer: '_pageChanged'
+        },
+
+        menu: {
+          type: Array,
+          readOnly: true,
+          value: function() { return this._menu }
+        },
+
+        appTitle: {
+          type: String,
+          readOnly: true,
+          value: function() { return this._appTitle }
+        }
+
+      },
+
+      get _appTitle() {
+        return 'N.I.C.E';
+      },
+
+      get _menu() {
+        return [
+          {
+            href: '/home-page',
+            label: 'Home',
+            name: 'home-page',
+            auth: false
+          },
+          {
+            href: '/article-page',
+            label: 'Articles',
+            name: 'article-page',
+            auth: false
+          },
+          {
+            href: '/infograph-page',
+            label: 'Infographs',
+            name: 'infograph-page',
+            auth: false
+          },
+          {
+            href: '/open-data-page',
+            label: 'Open Data',
+            name: 'open-data-page',
+            auth: false
+          },
+          {
+            href: '/dashboard-page',
+            label: 'Dashboard',
+            name: 'dashboard-page',
+            auth: true
+          },
+          {
+            href: '/profile-page',
+            label: 'Profile',
+            name: 'profile-page',
+            auth: true
+          }
+        ];
+      },
+
+      observers: [
+        '_routePageChanged(routeData.page)'
+      ],
+
+      behaviors: [
+        Polymer.MainAppBehavior
+      ],
+
+      //   this.showMenuButton = false;
+      //   this.showHeaderMenu = false;
+      // },
+
+      _onQueryMatchesChanged: function(e) {
+        this.showMenuButton = !e.detail.value ? 'hidden' : false;
+        this.showHeaderMenu = e.detail.value ? 'hidden' : false;
+      },
+
+      _computeMediaQuery: function() {
+        return '(max-width: ' + this.$['main-app-drawer-layout'].responsiveWidth + ')';
+      },
+
+      checkMenuAuth: function(auth, user) {
+        console.log(auth)
+        console.log(user)
+        return !auth || user;
+      },
+
+      _routePageChanged: function(page) {
+        this.page = page || this._menu[0].name;
+      },
+
+      _pageChanged: function(page) {
+        // load page import on demand.
+        this.importHref(
+          this.resolveUrl(`pages/${page}.html`), null, null, true);
+      }
+
+    });
+
+  </script>
+
+</dom-module>

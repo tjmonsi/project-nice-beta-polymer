@@ -1,0 +1,69 @@
+<link rel="import" href="../../bower_components/app-storage/app-network-status-behavior.html">
+<link rel="import" href="main-app-behavior.html">
+<script>
+  (function(){
+    'use strict';
+
+    Polymer.ArticleBehaviorImpl = {
+
+      properties: {
+        articlePath: {
+          type: Object,
+          readOnly: true,
+          reflectToAttribute: true,
+          value: this._articlePath
+        },
+
+        articleGroup: {
+          type: String,
+          readOnly: true,
+          reflectToAttribute: true,
+          value: this._articleGroup
+        }
+      },
+
+      get _articleGroup() {
+        return 'article_group';
+      },
+
+      get _articlePath() {
+        return {
+          articles: `${this._articleGroup}/articles`,
+          owners: `${this._articleGroup}/owners`,
+        };
+      },
+
+      _gotoArticle(pageId = '', action, name = 'New Window') {
+        this._gotoPage('article', pageId, action, name);
+      },
+
+      _insertNewArticle(sluggedTitle, e) {
+        if (
+          sluggedTitle &&
+          typeof sluggedTitle === 'string' &&
+          sluggedTitle.trim().length >= 0 &&
+          this.isEditable &&
+          this.$.createNewTitle.value &&
+          this.$.createNewTitle.value.trim().length >= 0
+        ) {
+          this.$.dataRef.save(`${this.articlePath.articles}/${sluggedTitle}`).then(function(){
+            this.$.dataRef.data = {
+              title: this.$.createNewTitle.value,
+              date_created: this.todayUTCString
+            };
+            this._setOwner(this.articlePath.owners, sluggedTitle).then(function() {
+              this.$.toaster.show('Creating a new Article');
+              this.$.createNewFab.removeAttribute('disabled');
+              this._gotoArticle(sluggedTitle, 'edit', `New Article: ${this.$.createNewTitle.value}`);
+            }.bind(this)).catch(this._catchError.bind(this))
+          }.bind(this)).catch(this._catchError.bind(this))
+        }
+      }
+    };
+    Polymer.ArticleBehavior = [
+      Polymer.AppNetworkStatusBehavior,
+      Polymer.MainAppBehavior,
+      Polymer.ArticleBehaviorImpl
+    ];
+  })();
+</script>
