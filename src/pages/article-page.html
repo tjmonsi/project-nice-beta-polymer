@@ -37,21 +37,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </style>
 
     <app-route
-        route="{{route}}"
-        pattern="/:pageId"
-        data="{{routeData}}"
-        tail="{{subroute}}">
+      route="{{route}}"
+      pattern="/:pageId"
+      data="{{routeData}}"
+      tail="{{subroute}}">
     </app-route>
-
-    <firebase-document
-        id="data-ref"
-        path="groups/[[articleGroup]]/temp/[[user.uid]]">
-    </firebase-document>
-
-    <firebase-document
-        id="owner-ref"
-        path="owners/[[articleGroup]]/temp/[[user.uid]]">
-    </firebase-document>
 
     <neon-animated-pages
       role="main"
@@ -60,8 +50,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       entry-animation="fade-in-animation"
       exit-animation="fade-out-animation">
       <article-view name="view"
+        page="[[page]]"
+        page-id="{{pageId}}"
         route="[[subroute]]"
-        user="{{user}}">
+        roles="[[roles]]"
+        user="[[user]]">
       </article-view>
       <article-list name="list"
         route="[[subroute]]"
@@ -69,7 +62,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </article-list>
     </neon-animated-pages>
 
-    <template is="dom-if" if="{{isEditable}}">
+    <template is="dom-if" if="{{checkPermission(roles.staff, user, online)}}">
+      <firebase-document id="data-ref">
+      </firebase-document>
+      <firebase-document id="owner-ref">
+      </firebase-document>
+      <firebase-document id="options-ref">
+      </firebase-document>
+
       <paper-fab
         id="create-new-fab"
         icon="add"
@@ -128,6 +128,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ],
 
       _routePageIdChanged: function(id) {
+        // this.set('pageId', id);
         this.pageId = id;
       },
 

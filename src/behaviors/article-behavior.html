@@ -9,15 +9,15 @@
         articlePath: {
           type: Object,
           readOnly: true,
-          reflectToAttribute: true,
-          value: function() { return this._articlePath }
+          // reflectToAttribute: true,
+          value: function() { return this._articlePath; }
         },
 
         articleGroup: {
           type: String,
           readOnly: true,
-          reflectToAttribute: true,
-          value: function() { return this._articleGroup }
+          // reflectToAttribute: true,
+          value: function() { return this._articleGroup; }
         }
       },
 
@@ -32,7 +32,7 @@
           owners: `${this._articleGroup}/owners`,
           options: {
             published: `${options}/published`,
-            draft: `${options}/published`,
+            draft: `${options}/draft`,
             front: `${options}/front`
           }
         };
@@ -47,22 +47,25 @@
           sluggedTitle &&
           typeof sluggedTitle === 'string' &&
           sluggedTitle.trim().length >= 0 &&
-          this.isEditable &&
+          this.checkPermission(this.roles.staff) &&
           this.$$('#create-new-title').value &&
           this.$$('#create-new-title').value.trim().length >= 0
         ) {
-          this.$$('#data-ref').save(`${this.articlePath.articles}/${sluggedTitle}`).then(function(){
-            this.$$('#data-ref').data = {
-              title: this.$$('#create-new-title').value,
-              date_created: this._todayUTCString
-            };
-            this._setOwner(this.articlePath.owners, sluggedTitle).then(function() {
-              this.$.toaster.show('Creating a new Article');
-              this.$$('#create-new-fab').removeAttribute('disabled');
-              this.$$('#create-new-title').value = '';
-              this._gotoArticle(sluggedTitle, 'edit', `New Article: ${this.$$('#create-new-title').value}`);
+          this.$$('#data-ref').setStoredValue(`${this.articlePath.articles}/${sluggedTitle}`, {
+            title: this.$$('#create-new-title').value,
+            date_created: this._todayUTC
+          }).then(function(){
+            this._setOption(this.articlePath.options.draft, sluggedTitle, this._todayUTC).then(function() {
+              this._setOwner(this.articlePath.owners, sluggedTitle).then(function() {
+                this.$.toaster.show('Creating a new Article');
+                this.$$('#create-new-fab').removeAttribute('disabled');
+                this.$$('#create-new-title').value = '';
+                this._gotoArticle(sluggedTitle, 'edit', `New Article: ${this.$$('#create-new-title').value}`);
+              }.bind(this)).catch(this._catchError.bind(this));
             }.bind(this)).catch(this._catchError.bind(this));
           }.bind(this)).catch(this._catchError.bind(this));
+        } else {
+          this._catchError(new Error('Error: cannot create new article'));
         }
       }
     };

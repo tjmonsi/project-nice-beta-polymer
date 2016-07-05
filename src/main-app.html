@@ -74,7 +74,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       auth-domain="project-nice-polymer.firebaseapp.com"
       database-url="https://project-nice-polymer.firebaseio.com"
       storage-bucket="project-nice-polymer.appspot.com">
-    </firebase-app>
+    </firebase-app-with-storage>
 
     <firebase-auth
       id="auth"
@@ -83,23 +83,32 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       user="{{user}}">
     </firebase-auth>
 
-    <!--<firebase-document-->
-    <!--    id="user-admin-ref"-->
-    <!--    path="[[userPath.options.admin]]"-->
-    <!--    data="{{adminOption}}">-->
-    <!--</firebase-document>-->
+    <template is="dom-if" if="{{user}}">
+      <firebase-document
+        id="user-admin-ref"
+        path="[[userPath.options.admin]]/[[user.uid]]"
+        data="{{adminRole}}">
+      </firebase-document>
 
-    <!--<firebase-document-->
-    <!--    id="user-editor-ref"-->
-    <!--    path="[[userPath.options.editor]]"-->
-    <!--    data="{{editorOption}}">-->
-    <!--</firebase-document>-->
+      <firebase-document
+        id="user-editor-ref"
+        path="[[userPath.options.editor]]/[[user.uid]]"
+        data="{{editorRole}}">
+      </firebase-document>
 
-    <!--<firebase-document-->
-    <!--    id="user-editor-ref"-->
-    <!--    path="[[userPath.options.staff]]"-->
-    <!--    data="{{staffOption}}">-->
-    <!--</firebase-document>-->
+      <firebase-document
+        id="user-staff-ref"
+        path="[[userPath.options.staff]]/[[user.uid]]"
+        data="{{staffRole}}">
+      </firebase-document>
+
+      <firebase-document
+        id="user-member-ref"
+        path="[[userPath.options.member]]/[[user.uid]]"
+        data="{{memberRole}}">
+      </firebase-document>
+    </template>
+
 
     <app-scrollpos-control selected="{{page}}"></app-scrollpos-control>
 
@@ -175,9 +184,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           <article-page
             name="article-page"
-            route="{{subroute}}"
-            page="{{page}}"
-            user="{{user}}">
+            route="[[subroute]]"
+            page="[[page]]"
+            user="[[user]]"
+            roles="[[roles]]">
           </article-page>
 
           <inforgraph-page
@@ -213,6 +223,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       is: 'main-app',
 
       properties: {
+
+        adminRole: {
+          type: Boolean,
+          value: false,
+        },
+        editorRole: {
+          type: Boolean,
+          value: false,
+        },
+        staffRole: {
+          type: Boolean,
+          value: false,
+        },
+        memberRole: {
+          type: Boolean,
+          value: false,
+        },
 
         page: {
           type: String,

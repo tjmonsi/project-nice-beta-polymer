@@ -1,0 +1,128 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/marked-element/marked-element.html">
+
+
+<dom-module id="article-organism">
+
+  <template>
+
+    <style is="custom-style" include="iron-flex iron-flex-alignment">
+      :host {
+        width: 100%;
+      }
+      :host .article-banner {
+        position: relative;
+      }
+      :host .article-banner .title {
+        position: absolute;
+        top: 40px;
+        width: 100%;
+        text-align: center;
+        color: white;
+      }
+      :host .article-banner .title .sub-title {
+        width: 100%;
+        text-align: center;
+        color: white;
+      }
+      :host .article-banner .title h1 {
+
+      }
+      :host .article-banner iron-image {
+        position: relative;
+        width: 100%;
+        height: 300px;
+        background-color: black;
+      }
+      :host .article-banner .banner-overlay {
+        position: absolute;
+        width: 100%;
+        height: 300px;
+        opacity: 0.5;
+        top: 0px;
+        background-color: black;
+      }
+
+      :host .article-body {
+        padding: 20px;
+      }
+    </style>
+
+    <firebase-document
+      id="published-ref"
+      data="{{publishDate}}"
+      path="[[articlePath.options.published]]/[[pageId]]">
+    </firebase-document>
+
+    <div class="article-item">
+      <div class="article-banner">
+
+        <iron-image
+          src="{{article.header_image}}"
+          sizing="cover"
+          preload
+          fade>
+        </iron-image>
+        <div class="banner-overlay">
+        </div>
+        <div class="title">
+          <h1>{{article.title}}</h1>
+          <div class="sub-title">
+            {{article.sub_title}}
+          </div>
+        </div>
+      </div>
+      <div class="article-by-line">
+        <template is="dom-if" if="{{_forceZero(publishDate)}}">
+          Last Edited at: {{renderDate(publishDate)}}
+        </template>
+      </div>
+      <div class="article-body">
+        <marked-element markdown="{{article.body}}">
+          <div class="markdown-html"></div>
+        </marked-element>
+      </div>
+
+    </div>
+
+  </template>
+
+  <script>
+
+    Polymer({
+
+      is: 'article-organism',
+
+      properties: {
+        article: Object,
+        publishDate: {
+          type: Number,
+          notify: true
+        },
+
+      },
+
+      behaviors: [
+        Polymer.ArticleBehavior,
+      ],
+
+      renderDate(d) {
+        var nd = new Date(d)
+        return `${nd.toLocaleDateString()} - ${nd.toLocaleTimeString()}`;
+      },
+
+    });
+
+  </script>
+
+</dom-module>

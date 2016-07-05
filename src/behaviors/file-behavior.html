@@ -1,0 +1,27 @@
+<link rel="import" href="main-app-behavior.html">
+<script>
+  (function(){
+    'use strict';
+
+    Polymer.FileBehaviorImpl = {
+
+      uploadFile: function(e) {
+        if (e.target.files && e.target.files.length === 1) {
+          var file = e.target.files[0];
+          var targetInput = `#${e.target.getAttribute('data-for')}`;
+          console.log(targetInput)
+          this.$$('#file-ref').data = file;
+          this.$$('#file-ref').save().then(function(result){
+            console.log(result.snapshot.downloadURL)
+            this.$$(targetInput).value = result.snapshot.downloadURL;
+          }.bind(this)).catch(this._catchError.bind(this));
+        }
+      }
+
+    };
+    Polymer.FileBehavior = [
+      Polymer.MainAppBehavior,
+      Polymer.FileBehaviorImpl
+    ];
+  })();
+</script>

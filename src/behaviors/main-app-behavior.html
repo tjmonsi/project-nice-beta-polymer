@@ -1,4 +1,5 @@
 <link rel="import" href="../../bower_components/app-storage/app-network-status-behavior.html">
+<link rel="import" href="user-role-behavior.html">
 <link rel="import" href="../data-state-handlers/js">
 <script>
   (function(){
@@ -9,39 +10,7 @@
       properties: {
         route: {
           type: Object,
-          reflectToAttribute: true,
           notify: true
-        },
-        user: {
-          type: Object,
-          reflectToAttribute: true,
-          value: null
-        },
-        isEditable: {
-          type: Boolean,
-          readOnly: true,
-          reflectToAttribute: true,
-          value: false,
-          computed: '_checkEditable(user, online)'
-        },
-        isEditor: {
-          type: Boolean,
-          readOnly: true,
-          reflectToAttribute: true,
-          value: false,
-          computed: '_checkEditor(user, online)'
-        },
-        userPath: {
-          type: Object,
-          readOnly: true,
-          reflectToAttribute: true,
-          value: function() { return this._userPath }
-        },
-        userGroup: {
-          type: String,
-          readOnly: true,
-          reflectToAttribute: true,
-          value: function() { return this._userGroup }
         },
         page: {
           type: String,
@@ -62,42 +31,19 @@
       },
 
       get _randomStringPool() {
-        return 'abcdefghijklmnopqrstuvwxyz';
+        return 'abcdefghijklmnopqrstuvwxyz0123456789';
       },
 
       get _randomStringLength() {
         return 10;
       },
 
-      get _todayUTCString() {
-        return new Date().toUTCString();
+      get _todayUTC() {
+        return firebase ? firebase.database.ServerValue.TIMESTAMP : Date.now();
       },
 
-      get _userGroup() {
-        return 'user_group';
-      },
-
-      get _userPath() {
-        var options = `${this._userGroup}/roles`;
-        return {
-          profiles: `${this._userGroup}/profiles`,
-          options: {
-            admin: `${options}/admin`,
-            editor: `${options}/editor`,
-            staff: `${options}/staff`,
-            member: `${options}/member`
-          }
-        };
-      },
-
-      _checkEditable(u, o) {
-        // TODO: change to check if user is owner or a contributor
-        return u && o;
-      },
-
-      _checkEditor(u, o) {
-        // TODO: change to check if user is at least editor or admin
-        return u && o;
+      _checkIdExists(id) {
+        return id;
       },
 
       _gotoPage(page, pageId = '', action, name = 'New Window') {
@@ -127,6 +73,24 @@
         }.bind(this));
       },
 
+      _setOption(group, id, value, optionsRef = '#options-ref') {
+        return new Promise(function(resolve, reject){
+          if (group && typeof group === 'string' && id) {
+            if (value) {
+              this.$$(optionsRef).setStoredValue(`${group}/${id}`, value).then(function(){
+                this.$$(optionsRef).reset().then(resolve);
+              }.bind(this)).catch(reject);
+            } else {
+              this.$$(optionsRef).path = `${group}/${id}`;
+              this.$$(optionsRef).destroy().then(resolve).catch(reject);
+            }
+          } else {
+            this.$.toaster.show(`Cannot set option flag for ${id ? id : 'new object'}`);
+            reject(new Error('No id or group path for option flag present'));
+          }
+        }.bind(this));
+      },
+
       openCreateNewDialog() {
         if (this.$$('#create-new-dialog')) {
           this.$$('#create-new-dialog').open();
@@ -136,35 +100,20 @@
       },
 
       insertNew(e) {
-        if (this.isEditable) {
+        if (this.checkPermission(this.roles.staff)) {
           if (!this.$$('#create-new-title').value || this.$$('#create-new-title').value.trim().length == 0) {
             this.$.toaster.show('Please put a title before creating');
             return;
           }
+          this.$.toaster.show('Processing request...');
           var randomString = chance.string({length: this._randomStringLength ,pool: this._randomStringPool});
-          var sluggedTitle = `${slug(this.$$('#create-new-title').value)}-slug--${slug(randomString)}`;
+          var sluggedTitle = `${slug(this.$$('#create-new-title').value.trim().toLowerCase())}--uid${slug(randomString)}`;
           this.$$('#create-new-fab').setAttribute('disabled', true);
           if (this.page === 'article-page') {
             this._insertNewArticle(sluggedTitle, e);
           }
         } else {
           this.$.toaster.show(`You are not authorized to create a new ${page.split('-').join(' ')}`);
-        }
-      },
-
-      signIn() {
-        this.$.auth.signInWithPopup().then(function(result) {
-          this.$.toaster.show(`Welcome ${result.user.displayName}!`);
-        }.bind(this)).catch(this._catchError.bind(this));
-      },
-
-      signOut() {
-        if (this.$.auth) {
-          this.$.auth.signOut().then(function() {
-            this.$.toaster.show(`Goodbye!`);
-          }.bind(this)).catch(this._catchError.bind(this));
-        } else {
-          this.$.toaster.show('You are already logged out.');
         }
       },
 
@@ -178,6 +127,7 @@
     };
     Polymer.MainAppBehavior = [
       Polymer.AppNetworkStatusBehavior,
+      Polymer.UserRoleBehavior,
       Polymer.MainAppBehaviorImpl
     ];
   })();
