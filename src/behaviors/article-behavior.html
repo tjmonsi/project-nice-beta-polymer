@@ -1,4 +1,3 @@
-<link rel="import" href="../../bower_components/app-storage/app-network-status-behavior.html">
 <link rel="import" href="main-app-behavior.html">
 <script>
   (function(){
@@ -11,14 +10,14 @@
           type: Object,
           readOnly: true,
           reflectToAttribute: true,
-          value: this._articlePath
+          value: function() { return this._articlePath }
         },
 
         articleGroup: {
           type: String,
           readOnly: true,
           reflectToAttribute: true,
-          value: this._articleGroup
+          value: function() { return this._articleGroup }
         }
       },
 
@@ -27,14 +26,20 @@
       },
 
       get _articlePath() {
+        var options = `${this._articleGroup}/options`;
         return {
           articles: `${this._articleGroup}/articles`,
           owners: `${this._articleGroup}/owners`,
+          options: {
+            published: `${options}/published`,
+            draft: `${options}/published`,
+            front: `${options}/front`
+          }
         };
       },
 
       _gotoArticle(pageId = '', action, name = 'New Window') {
-        this._gotoPage('article', pageId, action, name);
+        this._gotoPage('article-page', pageId, action, name);
       },
 
       _insertNewArticle(sluggedTitle, e) {
@@ -43,25 +48,25 @@
           typeof sluggedTitle === 'string' &&
           sluggedTitle.trim().length >= 0 &&
           this.isEditable &&
-          this.$.createNewTitle.value &&
-          this.$.createNewTitle.value.trim().length >= 0
+          this.$$('#create-new-title').value &&
+          this.$$('#create-new-title').value.trim().length >= 0
         ) {
-          this.$.dataRef.save(`${this.articlePath.articles}/${sluggedTitle}`).then(function(){
-            this.$.dataRef.data = {
-              title: this.$.createNewTitle.value,
-              date_created: this.todayUTCString
+          this.$$('#data-ref').save(`${this.articlePath.articles}/${sluggedTitle}`).then(function(){
+            this.$$('#data-ref').data = {
+              title: this.$$('#create-new-title').value,
+              date_created: this._todayUTCString
             };
             this._setOwner(this.articlePath.owners, sluggedTitle).then(function() {
               this.$.toaster.show('Creating a new Article');
-              this.$.createNewFab.removeAttribute('disabled');
-              this._gotoArticle(sluggedTitle, 'edit', `New Article: ${this.$.createNewTitle.value}`);
-            }.bind(this)).catch(this._catchError.bind(this))
-          }.bind(this)).catch(this._catchError.bind(this))
+              this.$$('#create-new-fab').removeAttribute('disabled');
+              this.$$('#create-new-title').value = '';
+              this._gotoArticle(sluggedTitle, 'edit', `New Article: ${this.$$('#create-new-title').value}`);
+            }.bind(this)).catch(this._catchError.bind(this));
+          }.bind(this)).catch(this._catchError.bind(this));
         }
       }
     };
     Polymer.ArticleBehavior = [
-      Polymer.AppNetworkStatusBehavior,
       Polymer.MainAppBehavior,
       Polymer.ArticleBehaviorImpl
     ];

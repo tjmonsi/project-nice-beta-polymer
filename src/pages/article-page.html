@@ -9,18 +9,99 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../behaviors/article-behavior.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 
 <dom-module id="article-page">
 
   <template>
 
-    <style>
+    <style is="custom-style">
+      :host {
+      }
 
+      paper-fab {
+        position: fixed;
+        bottom: 1em;
+        right: 1em;
+      }
+
+      paper-fab.label {
+        font-size: 20px;
+      }
+
+      paper-dialog {
+        width: 70%;
+      }
     </style>
 
-    <div>
+    <app-route
+        route="{{route}}"
+        pattern="/:pageId"
+        data="{{routeData}}"
+        tail="{{subroute}}">
+    </app-route>
 
-    </div>
+    <firebase-document
+        id="data-ref"
+        path="groups/[[articleGroup]]/temp/[[user.uid]]">
+    </firebase-document>
+
+    <firebase-document
+        id="owner-ref"
+        path="owners/[[articleGroup]]/temp/[[user.uid]]">
+    </firebase-document>
+
+    <neon-animated-pages
+      role="main"
+      selected="[[subpage]]"
+      attr-for-selected="name"
+      entry-animation="fade-in-animation"
+      exit-animation="fade-out-animation">
+      <article-view name="view"
+        route="[[subroute]]"
+        user="{{user}}">
+      </article-view>
+      <article-list name="list"
+        route="[[subroute]]"
+        user="{{user}}">
+      </article-list>
+    </neon-animated-pages>
+
+    <template is="dom-if" if="{{isEditable}}">
+      <paper-fab
+        id="create-new-fab"
+        icon="add"
+        on-tap="openCreateNewDialog"
+        disabled="[[!online]]"
+        aria-label="Add Article">
+      </paper-fab>
+
+      <paper-dialog
+        id="create-new-dialog"
+        entry-animation="scale-up-animation"
+        exit-animation="fade-out-animation">
+        <h2>New Article</h2>
+        <div>
+          <paper-input
+            id="create-new-title"
+            name="title"
+            minlength="1"
+            label="Please input Title">
+          </paper-input>
+        </div>
+        <div class="buttons">
+          <paper-button dialog-dismiss>
+            Cancel
+          </paper-button>
+          <paper-button on-tap="insertNew" dialog-confirm>
+            Create New
+          </paper-button>
+        </div>
+      </paper-dialog>
+    </template>
+    <paper-toast id="toaster"></paper-toast>
 
   </template>
 
@@ -28,7 +109,36 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     Polymer({
 
-      is: 'article-page'
+      is: 'article-page',
+
+      properties: {
+        subpage: {
+          type: String,
+          reflectToAttribute: true,
+          observer: '_pageChanged'
+        },
+      },
+
+      behaviors: [
+        Polymer.ArticleBehavior
+      ],
+
+      observers: [
+        '_routePageIdChanged(routeData.pageId)'
+      ],
+
+      _routePageIdChanged: function(id) {
+        this.pageId = id;
+      },
+
+      _checkIdExists: function(id) {
+        this.subpage = id && id.length != 0 ? 'view' : 'list';
+      },
+
+      _pageChanged: function(page) {
+        this.importHref(
+          this.resolveUrl(`article/article-${page}.html`), null, null, true);
+      }
 
     });
 

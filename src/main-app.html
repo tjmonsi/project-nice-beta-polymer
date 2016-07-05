@@ -8,7 +8,9 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animated-pages.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animatable.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animations.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
 <link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
@@ -33,7 +35,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <template>
 
-    <style>
+    <style is="custom-style">
 
       :host {
         display: block;
@@ -81,6 +83,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       user="{{user}}">
     </firebase-auth>
 
+    <!--<firebase-document-->
+    <!--    id="user-admin-ref"-->
+    <!--    path="[[userPath.options.admin]]"-->
+    <!--    data="{{adminOption}}">-->
+    <!--</firebase-document>-->
+
+    <!--<firebase-document-->
+    <!--    id="user-editor-ref"-->
+    <!--    path="[[userPath.options.editor]]"-->
+    <!--    data="{{editorOption}}">-->
+    <!--</firebase-document>-->
+
+    <!--<firebase-document-->
+    <!--    id="user-editor-ref"-->
+    <!--    path="[[userPath.options.staff]]"-->
+    <!--    data="{{staffOption}}">-->
+    <!--</firebase-document>-->
+
     <app-scrollpos-control selected="{{page}}"></app-scrollpos-control>
 
     <iron-media-query
@@ -113,7 +133,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <paper-tabs attr-for-selected="name" selected="{{page}}" role="navigation" class$="{{showHeaderMenu}}">
               <template is="dom-repeat" items="{{menu}}">
                 <template is="dom-if" if="{{checkMenuAuth(item.auth, user)}}">
-                  <paper-tab name="{{item.name}}">
+                  <paper-tab name="{{item.name}}" >
                     <a href="{{item.href}}" class="link" tabindex="-1">
                       {{item.label}}
                     </a>
@@ -122,26 +142,33 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               </template>
             </paper-tabs>
             <paper-tabs no-bar selected="[[page]]" attr-for-selected="name">
-              <template is="dom-if" if="{{!user}}">
-                <paper-tab on-click="signIn">
-                  Login
-                </paper-tab>
-              </template>
-              <template is="dom-if" if="{{user}}">
-                <paper-tab on-tap="signOut">
-                  Logout
-                </paper-tab>
-              </template>
               <template is="dom-if" if="{{online}}">
+                <template is="dom-if" if="{{!user}}">
+                  <paper-tab on-click="signIn">
+                    Login
+                  </paper-tab>
+                </template>
+                <template is="dom-if" if="{{user}}">
+                  <paper-tab on-tap="signOut">
+                    Logout
+                  </paper-tab>
+                </template>
+              </template>
+              <template is="dom-if" if="{{!online}}">
                 <paper-tab>
-                  <iron-icon icon="cloud-off"></iron-icon>
+                  <iron-icon icon="cloud-off" id="offline-icon"></iron-icon>
                 </paper-tab>
               </template>
             </paper-tabs>
           </app-toolbar>
         </app-header>
 
-        <iron-pages role="main" selected="[[page]]" attr-for-selected="name">
+        <neon-animated-pages
+          role="main"
+          selected="[[page]]"
+          attr-for-selected="name"
+          entry-animation="fade-in-animation"
+          exit-animation="fade-out-animation">
           <home-page
             name="home-page">
           </home-page>
@@ -149,6 +176,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <article-page
             name="article-page"
             route="{{subroute}}"
+            page="{{page}}"
             user="{{user}}">
           </article-page>
 
@@ -167,12 +195,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <open-data-page
             name="open-data-page">
           </open-data-page>
-        </iron-pages>
+        </neon-animated-pages>
 
       </app-header-layout>
 
     </app-drawer-layout>
     <paper-toast id="toaster"></paper-toast>
+    <template is="dom-if" if="{{!online}}">
+      <paper-tooltip for="offline-icon" offset="0">Offline</paper-tooltip>
+    </template>
   </template>
 
   <script>
@@ -216,7 +247,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             auth: false
           },
           {
-            href: '/article-page',
+            href: '/article-page/',
             label: 'Articles',
             name: 'article-page',
             auth: false
@@ -256,10 +287,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         Polymer.MainAppBehavior
       ],
 
-      //   this.showMenuButton = false;
-      //   this.showHeaderMenu = false;
-      // },
-
       _onQueryMatchesChanged: function(e) {
         this.showMenuButton = !e.detail.value ? 'hidden' : false;
         this.showHeaderMenu = e.detail.value ? 'hidden' : false;
@@ -270,8 +297,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       checkMenuAuth: function(auth, user) {
-        console.log(auth)
-        console.log(user)
+        // console.log(auth)
+        // console.log(user)
         return !auth || user;
       },
 

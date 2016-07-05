@@ -1,5 +1,5 @@
 <link rel="import" href="../../bower_components/app-storage/app-network-status-behavior.html">
-<link ref="import" href="../data-state-handlers/js">
+<link rel="import" href="../data-state-handlers/js">
 <script>
   (function(){
     'use strict';
@@ -9,7 +9,8 @@
       properties: {
         route: {
           type: Object,
-          reflectToAttribute: true
+          reflectToAttribute: true,
+          notify: true
         },
         user: {
           type: Object,
@@ -23,14 +24,41 @@
           value: false,
           computed: '_checkEditable(user, online)'
         },
+        isEditor: {
+          type: Boolean,
+          readOnly: true,
+          reflectToAttribute: true,
+          value: false,
+          computed: '_checkEditor(user, online)'
+        },
+        userPath: {
+          type: Object,
+          readOnly: true,
+          reflectToAttribute: true,
+          value: function() { return this._userPath }
+        },
+        userGroup: {
+          type: String,
+          readOnly: true,
+          reflectToAttribute: true,
+          value: function() { return this._userGroup }
+        },
         page: {
           type: String,
           notify: true,
+          reflectToAttribute: true,
         },
         pageId: {
           type: String,
-          notify: true
+          notify: true,
+          reflectToAttribute: true,
+          observer: '_checkIdExists'
         },
+        action: {
+          type: String,
+          notify: true,
+          reflectToAttribute: true,
+        }
       },
 
       get _randomStringPool() {
@@ -42,34 +70,56 @@
       },
 
       get _todayUTCString() {
-        return new Date.toUTCString();
+        return new Date().toUTCString();
+      },
+
+      get _userGroup() {
+        return 'user_group';
+      },
+
+      get _userPath() {
+        var options = `${this._userGroup}/roles`;
+        return {
+          profiles: `${this._userGroup}/profiles`,
+          options: {
+            admin: `${options}/admin`,
+            editor: `${options}/editor`,
+            staff: `${options}/staff`,
+            member: `${options}/member`
+          }
+        };
       },
 
       _checkEditable(u, o) {
-        // TODO: change to check if user is a contributor
+        // TODO: change to check if user is owner or a contributor
+        return u && o;
+      },
+
+      _checkEditor(u, o) {
+        // TODO: change to check if user is at least editor or admin
         return u && o;
       },
 
       _gotoPage(page, pageId = '', action, name = 'New Window') {
-        var url = action && typeof action === 'string' ? `/${page}/${pageId}/${action}` :  `/${page}/${pageId}`;
+        var url = action && typeof action === 'string' ? `/${pageId}/${action}` :  `/${pageId}`;
+        // window.location.href = url;
         if (window.history && window.history.pushState) {
           window.history.pushState({}, name, url);
+          this.route = Object.assign({}, this.route, {
+            prefix: '/article-page',
+            path: url
+          });
           this.importHref(
             this.resolveUrl(`/src/pages/${page}.html`), null, null, true);
         } else {
-          window.location.href = url;
+          window.location.href = this.route.prefix + url;
         }
       },
 
       _setOwner(group, id) {
         return new Promise(function(resolve, reject){
           if (group && typeof group === 'string' && id) {
-            this.ownerRef.save(`${group}/${id}`).then(function(){
-              this.ownerRef.data = this.user.uid;
-              resolve();
-            }.bind(this)).catch(function(error) {
-              reject(error);
-            }.bind(this));
+            this.$$('#owner-ref').setStoredValue(`${group}/${id}`, this.user.uid).then(resolve).catch(reject);
           } else {
             this.$.toaster.show(`Cannot set owner for ${id ? id : 'new object'}`);
             reject(new Error('No id or group path for owner present'));
@@ -77,15 +127,23 @@
         }.bind(this));
       },
 
+      openCreateNewDialog() {
+        if (this.$$('#create-new-dialog')) {
+          this.$$('#create-new-dialog').open();
+        } else {
+          this.$.toaster.show('Error: No dialog box exists. Please report to us for this bug');
+        }
+      },
+
       insertNew(e) {
         if (this.isEditable) {
-          if (!this.$.createNewTitle.value || this.$.createNewTitle.value.trim().length == 0) {
+          if (!this.$$('#create-new-title').value || this.$$('#create-new-title').value.trim().length == 0) {
             this.$.toaster.show('Please put a title before creating');
             return;
           }
           var randomString = chance.string({length: this._randomStringLength ,pool: this._randomStringPool});
-          var sluggedTitle = slug(`${this.$.createNewTitle.value} slug--${randomString}`);
-          this.$.createNewFab.setAttribute('disabled', true);
+          var sluggedTitle = `${slug(this.$$('#create-new-title').value)}-slug--${slug(randomString)}`;
+          this.$$('#create-new-fab').setAttribute('disabled', true);
           if (this.page === 'article-page') {
             this._insertNewArticle(sluggedTitle, e);
           }
@@ -113,8 +171,8 @@
       _catchError(error) {
         console.log(error);
         this.$.toaster.show(`Error: ${error.message}`);
-        if (this.$.createNewFab) {
-          this.$.createNewFab.removeAttribute('disabled');
+        if (this.$$('#create-new-fab')) {
+          this.$$('#create-new-fab').removeAttribute('disabled');
         }
       },
     };

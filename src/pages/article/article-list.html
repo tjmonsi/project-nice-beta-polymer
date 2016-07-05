@@ -8,9 +8,9 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 
-<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
 
-<dom-module id="home-page">
+<dom-module id="article-list">
 
   <template>
 
@@ -18,9 +18,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     </style>
 
-    <div>
-    Hone
-    </div>
+    <firebase-query
+      id="article-query"
+      path="[[articlePath.options.published]]"
+      data="{{publishedArticles}}">
+    </firebase-query>
+
+    <template is="dom-repeat" items="{{publishedArticles}}">
+      {{index}}
+      {{item.$key}}<br/>
+    </template>
 
   </template>
 
@@ -28,7 +35,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     Polymer({
 
-      is: 'home-page'
+      is: 'article-list',
+
+      behaviors: [
+        Polymer.ArticleBehavior
+      ],
 
     });
 
