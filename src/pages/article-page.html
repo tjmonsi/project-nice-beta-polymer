@@ -50,15 +50,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       entry-animation="fade-in-animation"
       exit-animation="fade-out-animation">
       <article-view name="view"
-        page="[[page]]"
-        page-id="{{pageId}}"
-        route="[[subroute]]"
+        article-id="[[pageId]]"
+        route="{{subroute}}"
         roles="[[roles]]"
         user="[[user]]">
       </article-view>
       <article-list name="list"
-        route="[[subroute]]"
-        user="{{user}}">
+        route="{{subroute}}"
+        user="[[user]]"
+        roles="[[roles]]">
       </article-list>
     </neon-animated-pages>
 
@@ -128,7 +128,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ],
 
       _routePageIdChanged: function(id) {
-        // this.set('pageId', id);
         this.pageId = id;
       },
 

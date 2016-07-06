@@ -1,0 +1,231 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../behaviors/article-behavior.html">
+<link rel="import" href="../../behaviors/file-behavior.html">
+
+<dom-module id="article-form-organism">
+
+  <template>
+
+    <style is="custom-style" include="iron-flex iron-flex-alignment">
+      .article-editor-form {
+        padding: 20px;
+        padding-top: 0px;
+      }
+      :host {
+        @apply(--layout-flex);
+      }
+    </style>
+
+    <firebase-document
+      id="data-ref"
+      path="[[articlePath.articles]]/[[articleId]]"
+      data="{{article}}">
+    </firebase-document>
+    <firebase-document
+      id="owner-ref"
+      path="[[articlePath.owners]]/[[articleId]]"
+      data="{{owner}}">
+    </firebase-document>
+    <firebase-document
+      id="published-ref"
+      data="{{publishOption}}"
+      path="[[articlePath.options.published]]/[[articleId]]">
+    </firebase-document>
+    <firebase-document
+      id="draft-ref"
+      data="{{draftOption}}"
+      path="[[articlePath.options.draft]]/[[articleId]]">
+    </firebase-document>
+    <firebase-document
+      id="front-ref"
+      data="{{frontOption}}"
+      path="[[articlePath.options.front]]/[[articleId]]">
+    </firebase-document>
+    <firebase-storage
+      id="file-ref"
+      path="[[articlePath.articles]]/[[articleId]]"
+      data="{{fileUpload}}"
+      uploadTask="{{uploadTask}}">
+    </firebase-storage>
+
+    <!--<template is="dom-if" if="{{checkPermission(roles.staff, user, online, owner)}}">-->
+      <div class="article-editor-form">
+        <form is="iron-form" id="article-editor">
+          <paper-input
+            id="title"
+            name="title"
+            label="Title"
+            value="{{article.title}}"
+            max="100"
+            char-counter
+            >
+          </paper-input>
+          <paper-input
+            name="header-image"
+            id="header-image"
+            label="Header Image"
+            value="{{article.header_image}}">
+          </paper-input>
+          <input
+            name="headerImageFileUpload"
+            placeholder="Upload it here"
+            type="file"
+            data-for="header-image"
+            on-change="uploadFile"
+            >
+          </input>
+          <hr/>
+          <br/>
+          <paper-textarea
+            id="sub-title"
+            label="Short Description"
+            name="sub-title"
+            value="{{article.sub_title}}"
+            rows="1"
+            max="200"
+            char-counter>
+          </paper-textarea>
+          <paper-textarea
+            id="body"
+            label="Body"
+            name="body"
+            value="{{article.body}}"
+            rows="5"
+            char-counter>
+          </paper-textarea>
+          <div class="horizontal layout" style="padding: 10px">
+            <span style="padding-right: 10px">
+              Publish:
+            </span>
+            <paper-toggle-button
+              id="publish"
+              on-change="onPublish"
+            ></paper-toggle-button>
+          </div>
+          <div class="horizontal layout" style="padding: 10px">
+            <span style="padding-right: 10px">
+              Front published:
+            </span>
+            <paper-toggle-button
+              id="front"
+              on-change="onFrontPublish"
+            ></paper-toggle-button>
+          </div>
+        </form>
+      </div>
+      <paper-toast id="toaster"></paper-toast>
+    <!--</template>-->
+  </template>
+
+  <script>
+
+    Polymer({
+
+      is: 'article-form-organism',
+
+      properties: {
+        isEditorOpen: {
+          type: Boolean,
+          value: false,
+          computed: '_checkAction(action)'
+        }
+      },
+
+      observers: [
+        '_routeActionChanged(routeData.action)',
+        '_checkPublish(draftOption)',
+        '_checkFront(frontOption)'
+      ],
+
+      _checkPublish(o) {
+        if (this.$$('#publish')) {
+          this.$$('#publish').checked = this._forceZero(o) ? false : true;
+        }
+      },
+
+      _checkFront(o) {
+        if (this.$$('#front')) {
+          this.$$('#front').checked = this._forceZero(o) ? true : false;
+        }
+      },
+
+      onPublish(e) {
+        var message = e.target.checked ? 'Published' : 'Not Published';
+        var checked = e.target.checked;
+        this._setOption(
+          this.articlePath.options.draft,
+          this.articleId,
+          !checked ? this._todayUTC : null,
+          '#draft-ref'
+        ).then(function(){
+          if (!checked) {
+            this._setOption(
+              this.articlePath.options.front,
+              this.articleId,
+              null,
+              '#front-ref'
+            ).catch(this._catchError.bind(this));
+          }
+          this._setOption(
+            this.articlePath.options.published,
+            this.articleId,
+            checked ? this._todayUTC : null,
+            '#published-ref'
+          ).then(function(){
+            e.target.checked = checked;
+            this.$.toaster.hide();
+            this.$.toaster.show(message);
+          }.bind(this)).catch(this._catchError.bind(this));
+        }.bind(this)).catch(this._catchError.bind(this));
+      },
+
+      onFrontPublish(e) {
+        var message = e.target.checked ? 'Published at Header' : 'Removed at Header';
+        var checked = e.target.checked;
+        if (checked) {
+          this._setOption(
+            this.articlePath.options.published,
+            this.articleId,
+            null,
+            '#draft-ref'
+          ).catch(this._catchError.bind(this));
+          this._setOption(
+            this.articlePath.options.published,
+            this.articleId,
+            this._todayUTC,
+            '#published-ref'
+          ).catch(this._catchError.bind(this));
+        }
+        this._setOption(
+          this.articlePath.options.front,
+          this.articleId,
+          checked ? this._todayUTC : null,
+          '#front-ref'
+        ).then(function(){
+          e.target.checked = checked;
+          this.$.toaster.hide();
+          this.$.toaster.show(message);
+        }.bind(this)).catch(this._catchError.bind(this));
+      },
+
+      behaviors: [
+        Polymer.FileBehavior,
+        Polymer.ArticleBehavior,
+      ],
+
+    });
+
+  </script>
+
+</dom-module>

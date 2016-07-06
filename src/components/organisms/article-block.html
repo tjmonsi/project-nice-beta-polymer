@@ -13,7 +13,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../../../bower_components/prism-element/prism-highlighter.html">
 
 
-<dom-module id="article-organism">
+<dom-module id="article-block-organism">
 
   <template>
 
@@ -108,25 +108,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             Last Edited at: {{renderDate(publishDate.value)}}
           </div>
         </template>
-        <marked-element markdown="{{article.body}}">
-          <div class="markdown-html"></div>
-        </marked-element>
       </div>
       <div class="">
-        <a href="/article-page/">
-          <paper-button>Go back</paper-button>
+        <a href="/article-page/[[articleId]]/view">
+          Read Me
         </a>
         <template is="dom-if" if="{{checkPermission(roles.staff, user, online, owner)}}">
-          <template is="dom-if" if="{{isEditorOpen}}">
-            <a href="/article-page/[[articleId]]/view">
-              <paper-button>Close Editor</paper-button>
-            </a>
-          </template>
-          <template is="dom-if" if="{{!isEditorOpen}}">
-            <a href="/article-page/[[articleId]]/edit">
-              <paper-button>Open Editor</paper-button>
-            </a>
-          </template>
+          <a href="/article-page/[[articleId]]/edit">
+            <paper-button>Open Editor</paper-button>
+          </a>
           <paper-button on-tap="_deleteArticle">Delete</paper-button>
         </template>
       </div>
@@ -150,7 +140,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     Polymer({
 
-      is: 'article-organism',
+      is: 'article-block-organism',
 
       properties: {
         article: Object,

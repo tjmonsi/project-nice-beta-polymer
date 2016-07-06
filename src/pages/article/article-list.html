@@ -9,24 +9,60 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../components/organisms/article-summary.html">
 
 <dom-module id="article-list">
 
   <template>
 
     <style>
-
+      :host .title {
+        padding-left: 1em;
+        padding-right: 1em;
+      }
     </style>
 
     <firebase-query
       id="article-query"
       path="[[articlePath.options.published]]"
-      data="{{publishedArticles}}">
+      data="{{publishedArticles}}"
+      order-by-value="value">
     </firebase-query>
 
+    <firebase-query
+      id="draft-query"
+      path="[[articlePath.options.draft]]"
+      data="{{draftArticles}}"
+      order-by-value="value">
+    </firebase-query>
+
+    <template is="dom-if" if="{{checkPermission(roles.editor, user, online)}}">
+      <div class="title">
+        <h1>Draft Articles</h1>
+      </div>
+      <template is="dom-repeat" items="{{draftArticles}}">
+        <article-summary-organism
+          article-id="{{item.$key}}"
+          publish-date="{{item.value}}"
+          roles="[[roles]]"
+          route="{{route}}"
+          user="[[user]]">
+        </article-summary-organism>
+      </template>
+    </template>
+
+    <div class="title">
+      <h1>Articles</h1>
+    </div>
+
     <template is="dom-repeat" items="{{publishedArticles}}">
-      {{index}}
-      {{item.$key}}<br/>
+      <article-summary-organism
+        article-id="{{item.$key}}"
+        publish-date="{{item.value}}"
+        route="[[route]]"
+        roles="[[roles]]"
+        user="[[user]]">
+      </article-summary-organism>
     </template>
 
   </template>
@@ -40,6 +76,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       behaviors: [
         Polymer.ArticleBehavior
       ],
+
+      observers: [
+        'check(roles.editor)'
+      ],
+
+      check(e) {
+        console.log(e)
+      }
 
     });
 

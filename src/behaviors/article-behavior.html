@@ -6,6 +6,8 @@
     Polymer.ArticleBehaviorImpl = {
 
       properties: {
+        articleId: String,
+
         articlePath: {
           type: Object,
           readOnly: true,
@@ -66,6 +68,29 @@
           }.bind(this)).catch(this._catchError.bind(this));
         } else {
           this._catchError(new Error('Error: cannot create new article'));
+        }
+      },
+
+      _deleteArticle() {
+        if (this.articleId) {
+          this.$$('#data-ref').destroy().then(function(){
+            this.$$('#owner-ref').destroy().then(function(){
+              this.$$('#options-ref').path = `${this.articlePath.options.draft}/${this.articleId}`;
+              this.$$('#options-ref').destroy().then(function(){
+                this.$$('#options-ref').path = `${this.articlePath.options.published}/${this.articleId}`;
+                this.$$('#options-ref').destroy().then(function(){
+                  this.$$('#options-ref').path = `${this.articlePath.options.front}/${this.articleId}`;
+                  this.$$('#options-ref').destroy().then(function(){
+                    this.$.toaster.show('Article successfully deleted');
+                    window.location.href = '/article-page/';
+                    // this._gotoPage('article-page');
+                  }.bind(this)).catch(this._catchError.bind(this));
+                }.bind(this)).catch(this._catchError.bind(this));
+              }.bind(this)).catch(this._catchError.bind(this));
+            }.bind(this)).catch(this._catchError.bind(this));
+          }.bind(this)).catch(this._catchError.bind(this));
+        } else {
+          this.$.toaster.show('The article id to be deleted is undefined');
         }
       }
     };

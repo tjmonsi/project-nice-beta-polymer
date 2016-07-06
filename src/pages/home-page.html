@@ -9,17 +9,85 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../behaviors/article-behavior.html">
+<link rel="import" href="../components/organisms/article-block.html">
 
 <dom-module id="home-page">
 
   <template>
 
-    <style>
+    <style is="custom-style" include="iron-flex iron-flex-alignment">
+      :host {
+        display: block;
+      }
+
+      :host .tiler{
+        position: relative;
+        overflow: hidden;
+        height: 500px;
+        @apply(--layout-wrap);
+      }
+
+      :host .tile {
+        display: inline-block;
+        height: calc(100% / 3);
+        float: left;
+        vertical-align: top;
+        min-width: 300px;
+        /*@apply(--paper-font-title);*/
+      }
+
+      @media only screen and (min-width: 900px) {
+        :host .tile {
+          width: calc(100% / 3)
+        }
+
+        :host .tile:nth-of-type(6) {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+        }
+
+        :host .tile:nth-of-type(7) {
+          position: absolute;
+          bottom: 0;
+          left: calc(100% / 3);
+        }
+      }
+
+      @media only screen and (max-width: 600px) {
+        :host .tile {
+          width: 100%
+        }
+      }
+
+      @media only screen and (min-width: 600px) and (max-width: 900px) {
+        :host .tile {
+          width: calc(100% / 2);
+        }
+      }
+
+      :host .tile:nth-of-type(1), :host .tile:nth-of-type(5){
+        height: calc(100% / 3 * 2);
+      }
+
 
     </style>
 
-    <div>
-    Hone
+    <firebase-query
+      id="article-query"
+      path="[[articlePath.options.front]]"
+      data="{{frontArticles}}"
+      order-by-value="value"
+      limit-to-last="7">
+    </firebase-query>
+
+    <div class="tiler layout">
+      <template is="dom-repeat" items="[[frontArticles]]">
+        <div class="tile">
+
+        </div>
+      </template>
     </div>
 
   </template>
@@ -28,7 +96,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     Polymer({
 
-      is: 'home-page'
+      is: 'home-page',
+
+      behaviors: [
+        Polymer.ArticleBehavior
+      ],
+
 
     });
 
