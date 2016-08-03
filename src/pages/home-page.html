@@ -11,6 +11,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../behaviors/article-behavior.html">
 <link rel="import" href="../components/organisms/article-block.html">
+<link rel="import" href="../components/organisms/footer.html">
 
 <dom-module id="home-page">
 
@@ -24,7 +25,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       :host .tiler{
         position: relative;
         overflow: hidden;
-        height: 500px;
+        @apply(--layout-fullbleed);
         @apply(--layout-wrap);
       }
 
@@ -35,6 +36,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         vertical-align: top;
         min-width: 300px;
         /*@apply(--paper-font-title);*/
+      }
+
+      :host .tile article-block-organism {
+        height: 100%;
       }
 
       @media only screen and (min-width: 900px) {
@@ -53,6 +58,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           bottom: 0;
           left: calc(100% / 3);
         }
+
+        :host .tile:nth-of-type(1), :host .tile:nth-of-type(5){
+          height: calc(100% / 3 * 2);
+        }
+      }
+
+      @media only screen and (min-width: 600px) and (max-width: 900px) {
+        :host .tile {
+          width: calc(100% / 2);
+        }
+
+        :host .tile:nth-of-type(1), :host .tile:nth-of-type(4){
+          height: calc(100% / 3 * 2);
+        }
+
+        :host .tile:nth-of-type(3) {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+        }
       }
 
       @media only screen and (max-width: 600px) {
@@ -61,17 +86,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       }
 
-      @media only screen and (min-width: 600px) and (max-width: 900px) {
-        :host .tile {
-          width: calc(100% / 2);
-        }
-      }
-
-      :host .tile:nth-of-type(1), :host .tile:nth-of-type(5){
-        height: calc(100% / 3 * 2);
-      }
-
-
     </style>
 
     <firebase-query
@@ -79,17 +93,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       path="[[articlePath.options.front]]"
       data="{{frontArticles}}"
       order-by-value="value"
-      limit-to-last="7">
+      limit-to-first="7">
     </firebase-query>
 
-    <div class="tiler layout">
+    <div class="tiler">
       <template is="dom-repeat" items="[[frontArticles]]">
         <div class="tile">
-
+          <article-block-organism
+            article-id="[[item.$key]]"
+            publish-date="[[item.value]]"
+            user="{{user}}"
+            route="{{route}}"
+            roles="[[roles]]"
+            signed-in="[[signedIn]]">
+          </article-block-organism>
         </div>
       </template>
     </div>
 
+    <footer-organism></footer-organism>
   </template>
 
   <script>

@@ -10,6 +10,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../behaviors/article-behavior.html">
+
 <link rel="import" href="../../bower_components/neon-animation/animations/scale-up-animation.html">
 <link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
 
@@ -53,16 +54,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         article-id="[[pageId]]"
         route="{{subroute}}"
         roles="[[roles]]"
-        user="[[user]]">
+        user="[[user]]"
+        signed-in="[[signedIn]]">
       </article-view>
       <article-list name="list"
         route="{{subroute}}"
         user="[[user]]"
-        roles="[[roles]]">
+        roles="[[roles]]"
+        signed-in="[[signedIn]]">
       </article-list>
     </neon-animated-pages>
 
-    <template is="dom-if" if="{{checkPermission(roles.staff, user, online)}}">
+    <template is="dom-if" if="{{checkPermission(roles.staff, user, online, signedIn)}}">
       <firebase-document id="data-ref">
       </firebase-document>
       <firebase-document id="owner-ref">
@@ -101,6 +104,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </div>
       </paper-dialog>
     </template>
+
+
     <paper-toast id="toaster"></paper-toast>
 
   </template>

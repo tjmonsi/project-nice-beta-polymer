@@ -12,6 +12,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../../../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../components/organisms/article.html">
 <link rel="import" href="../../components/organisms/article-form.html">
+<link rel="import" href="../../components/organisms/footer.html">
 
 <dom-module id="article-view">
 
@@ -24,6 +25,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         height: 100px;
         --paper-spinner-stroke-width: 6px;
       }
+
+
     </style>
 
     <app-route
@@ -39,7 +42,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <article-form-organism
           article-id="[[articleId]]"
           roles="[[roles]]"
-          user="[[user]]"
+          signed-in="[[signedIn]]"
+          user="{{user}}"
           route="{{route}}">
         </article-form-organism>
       </template>
@@ -48,14 +52,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <article-organism
           article-id="[[articleId]]"
           roles="[[roles]]"
+          signed-in="[[signedIn]]"
           action="[[action]]"
-          user="[[user]]"
+          user="{{user}}"
           route="{{route}}"
           is-editor-open="[[isEditorOpen]]">
         </article-organism>
       </div>
     </div>
-
+    <footer-organism></footer-organism>
   </template>
 
   <script>
@@ -80,11 +85,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         Polymer.ArticleBehavior
       ],
 
-      _routeActionChanged(action) {
+      _routeActionChanged: function(action) {
         this.action = action;
       },
 
-      _checkAction(a) {
+      _checkAction: function(a) {
         console.log(a === 'edit');
         return a === 'edit';
       },

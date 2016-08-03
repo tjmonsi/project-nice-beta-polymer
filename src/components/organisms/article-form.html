@@ -59,7 +59,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       uploadTask="{{uploadTask}}">
     </firebase-storage>
 
-    <!--<template is="dom-if" if="{{checkPermission(roles.staff, user, online, owner)}}">-->
+    <template is="dom-if" if="{{checkPermission(roles.staff, user, online, signedIn, owner)}}">
       <div class="article-editor-form">
         <form is="iron-form" id="article-editor">
           <paper-input
@@ -124,8 +124,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </div>
         </form>
       </div>
-      <paper-toast id="toaster"></paper-toast>
-    <!--</template>-->
+
+    </template>
+    <paper-toast id="toaster"></paper-toast>
   </template>
 
   <script>
@@ -195,7 +196,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var checked = e.target.checked;
         if (checked) {
           this._setOption(
-            this.articlePath.options.published,
+            this.articlePath.options.draft,
             this.articleId,
             null,
             '#draft-ref'

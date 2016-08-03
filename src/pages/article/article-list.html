@@ -10,6 +10,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../components/organisms/article-summary.html">
+<link rel="import" href="../../components/organisms/footer.html">
 
 <dom-module id="article-list">
 
@@ -19,6 +20,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       :host .title {
         padding-left: 1em;
         padding-right: 1em;
+      }
+
+      :host .title h1 {
+        font-size: 2em;
       }
     </style>
 
@@ -36,7 +41,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       order-by-value="value">
     </firebase-query>
 
-    <template is="dom-if" if="{{checkPermission(roles.editor, user, online)}}">
+    <template is="dom-if" if="{{checkPermission(roles.editor, user, online, signedIn)}}">
       <div class="title">
         <h1>Draft Articles</h1>
       </div>
@@ -45,8 +50,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           article-id="{{item.$key}}"
           publish-date="{{item.value}}"
           roles="[[roles]]"
+          signed-in="[[signedIn]]"
           route="{{route}}"
-          user="[[user]]">
+          user="{{user}}">
         </article-summary-organism>
       </template>
     </template>
@@ -61,10 +67,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         publish-date="{{item.value}}"
         route="[[route]]"
         roles="[[roles]]"
-        user="[[user]]">
+        signed-in="[[signedIn]]"
+        user="{{user}}">
       </article-summary-organism>
     </template>
 
+    <footer-organism></footer-organism>
   </template>
 
   <script>
@@ -81,7 +89,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         'check(roles.editor)'
       ],
 
-      check(e) {
+      check: function(e) {
         console.log(e)
       }
 

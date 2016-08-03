@@ -20,13 +20,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/app-layout/app-scrollpos-control/app-scrollpos-control.html">
 
 <!-- data-state-handlers -->
-<link rel="import" href="data-state-handlers/app-route">
-<link rel="import" href="data-state-handlers/firebase-with-storage">
+<link rel="import" href="data-state-handlers/app-route/index.html">
+<link rel="import" href="data-state-handlers/firebase-with-storage/index.html">
 
 <!-- atom components -->
-<link rel="import" href="components/atoms/shared-styles">
-<link rel="import" href="components/atoms/iron">
-<link rel="import" href="components/atoms/paper">
+<link rel="import" href="components/atoms/shared-styles/index.html">
+<link rel="import" href="components/atoms/iron/index.html">
+<link rel="import" href="components/atoms/paper/index.html">
 
 <!-- behaviors -->
 <link rel="import" href="behaviors/main-app-behavior.html">
@@ -179,32 +179,58 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           entry-animation="fade-in-animation"
           exit-animation="fade-out-animation">
           <home-page
-            name="home-page">
+            name="home-page"
+            route="[[subroute]]"
+            page="[[page]]"
+            user="{{user}}"
+            roles="[[roles]]"
+            signed-in="[[signedIn]]">
           </home-page>
 
           <article-page
             name="article-page"
             route="[[subroute]]"
             page="[[page]]"
-            user="[[user]]"
-            roles="[[roles]]">
+            user="{{user}}"
+            roles="[[roles]]"
+            signed-in="[[signedIn]]">
           </article-page>
 
-          <inforgraph-page
-            name="infograph-page">
-          </infograph-page>
-
           <dashboard-page
-            name="dashboard-page">
+            name="dashboard-page"
+            route="[[subroute]]"
+            page="[[page]]"
+            user="{{user}}"
+            roles="[[roles]]"
+            signed-in="[[signedIn]]">
           </dashboard-page>
 
           <profile-page
-            name="profile-page">
+            name="profile-page"
+            route="[[subroute]]"
+            page="[[page]]"
+            user="{{user}}"
+            roles="[[roles]]"
+            signed-in="[[signedIn]]">
           </profile-page>
 
           <open-data-page
-            name="open-data-page">
+            name="open-data-page"
+            route="[[subroute]]"
+            page="[[page]]"
+            user="{{user}}"
+            roles="[[roles]]"
+            signed-in="[[signedIn]]">
           </open-data-page>
+
+          <about-page
+            name="about-page"
+            route="[[subroute]]"
+            page="[[page]]"
+            user="{{user}}"
+            roles="[[roles]]"
+            signed-in="[[signedIn]]">
+          </about-page>
         </neon-animated-pages>
 
       </app-header-layout>
@@ -274,17 +300,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             auth: false
           },
           {
+            href: '/about-page',
+            label: 'About',
+            name: 'about-page',
+            auth: false
+          },
+          {
             href: '/article-page/',
             label: 'Articles',
             name: 'article-page',
             auth: false
           },
-          {
-            href: '/infograph-page',
-            label: 'Infographs',
-            name: 'infograph-page',
-            auth: false
-          },
+          // {
+          //   href: '/infograph-page',
+          //   label: 'Infographs',
+          //   name: 'infograph-page',
+          //   auth: false
+          // },
           {
             href: '/open-data-page',
             label: 'Open Data',
@@ -340,6 +372,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
     });
+
+    /**
+     * Center for Bayanihan Economics, GK Enchanted Farms, Brgy, Encanto, Anggat Bulacan
+     * Lifebank Foundation Inc., Gov. Fermin Caram St, Brgy. Ma. Clara Iloilo City, 5000 Tel No. 033-333-3954
+     * */
 
   </script>
 

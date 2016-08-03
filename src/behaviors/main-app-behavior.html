@@ -1,6 +1,7 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/app-storage/app-network-status-behavior.html">
 <link rel="import" href="user-role-behavior.html">
-<link rel="import" href="../data-state-handlers/js">
+<link rel="import" href="../data-state-handlers/js/index.html">
 <script>
   (function(){
     'use strict';
@@ -42,7 +43,7 @@
         return firebase ? firebase.database.ServerValue.TIMESTAMP : Date.now();
       },
 
-      trimWords(s, numWords) {
+      trimWords: function(s, numWords) {
 
         if (!s)
           return s;
@@ -53,15 +54,15 @@
         return s;
       },
 
-      _checkIdExists(id) {
+      _checkIdExists: function(id) {
         return id;
       },
 
-      _consoleCheck(o) {
+      _consoleCheck: function(o) {
         console.log(o);
       },
 
-      _gotoPage(page, pageId = '', action, name = 'New Window') {
+      _gotoPage: function(page, pageId = '', action, name = 'New Window') {
         var url = action && typeof action === 'string' ? `/${pageId}/${action}` :  `/${pageId}`;
         if (window.history && window.history.pushState) {
           this.set('route.prefix', `/${page}`);
@@ -78,7 +79,7 @@
         }
       },
 
-      _setOwner(group, id) {
+      _setOwner: function(group, id) {
         return new Promise(function(resolve, reject){
           if (group && typeof group === 'string' && id) {
             this.$$('#owner-ref').setStoredValue(`${group}/${id}`, {owner: this.user.uid}).then(resolve).catch(reject);
@@ -89,7 +90,7 @@
         }.bind(this));
       },
 
-      _setOption(group, id, value, optionsRef = '#options-ref') {
+      _setOption: function(group, id, value, optionsRef = '#options-ref') {
         return new Promise(function(resolve, reject){
           if (group && typeof group === 'string' && id) {
             if (value) {
@@ -107,7 +108,7 @@
         }.bind(this));
       },
 
-      openCreateNewDialog() {
+      openCreateNewDialog: function() {
         if (this.$$('#create-new-dialog')) {
           this.$$('#create-new-dialog').open();
         } else {
@@ -115,8 +116,9 @@
         }
       },
 
-      insertNew(e) {
-        if (this.checkPermission(this.roles.staff)) {
+      insertNew: function(e) {
+        console.log(this.roles.staff)
+        if (this.checkPermission(this.roles.staff, this.user, this.online, this.signedIn)) {
           if (!this.$$('#create-new-title').value || this.$$('#create-new-title').value.trim().length == 0) {
             this.$.toaster.show('Please put a title before creating');
             return;
@@ -129,11 +131,11 @@
             this._insertNewArticle(sluggedTitle, e);
           }
         } else {
-          this.$.toaster.show(`You are not authorized to create a new ${page.split('-').join(' ')}`);
+          this.$.toaster.show(`You are not authorized to create a new ${this.page.split('-').join(' ')}`);
         }
       },
 
-      _catchError(error) {
+      _catchError: function(error) {
         console.log(error);
         this.$.toaster.show(`Error: ${error.message}`);
         if (this.$$('#create-new-fab')) {

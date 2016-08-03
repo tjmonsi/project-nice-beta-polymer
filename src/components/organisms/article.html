@@ -26,7 +26,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       :host .article-banner .title {
         position: absolute;
-        bottom: 20px;
+        bottom: 3em;
         width: 100%;
         text-align: center;
         color: white;
@@ -37,7 +37,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         text-align: center;
         color: white;
       }
-      :host .article-banner .title h1 {
+      :host .article-banner .title h2 {
         margin-bottom: 0px;
       }
       :host .article-banner iron-image {
@@ -61,6 +61,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       :host .article-by-line {
         font-size: 0.8em;
+      }
+
+      :host .buttons a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      :host table {
+        border: 1px solid black;
+        border-spacing: 0px;
+      }
+
+      :host td, th {
+        border: 1px solid black;
+        padding: 10px;
+        margin: 0;
+      }
+
+      :host tr {
+        padding: 0;
+        margin: 0;
       }
     </style>
 
@@ -105,18 +126,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <div class="article-body">
         <template is="dom-if" if="{{_forceZero(publishDate)}}">
           <div class="article-by-line">
-            Last Edited at: {{renderDate(publishDate.value)}}
+            Last Edited at: {{renderDate(publishDate)}}
           </div>
         </template>
         <marked-element markdown="{{article.body}}">
           <div class="markdown-html"></div>
         </marked-element>
       </div>
-      <div class="">
+      <div class="buttons">
         <a href="/article-page/">
           <paper-button>Go back</paper-button>
         </a>
-        <template is="dom-if" if="{{checkPermission(roles.staff, user, online, owner)}}">
+        <template is="dom-if" if="{{checkPermission(roles.staff, user, online, signedIn, owner)}}">
           <template is="dom-if" if="{{isEditorOpen}}">
             <a href="/article-page/[[articleId]]/view">
               <paper-button>Close Editor</paper-button>
@@ -124,10 +145,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </template>
           <template is="dom-if" if="{{!isEditorOpen}}">
             <a href="/article-page/[[articleId]]/edit">
-              <paper-button>Open Editor</paper-button>
+              <paper-icon-button icon="editor:mode-edit"></paper-icon-button>
             </a>
           </template>
-          <paper-button on-tap="_deleteArticle">Delete</paper-button>
+          <paper-icon-button on-tap="_deleteArticle" icon="icons:delete"></paper-icon-button>
         </template>
       </div>
     </div>
@@ -155,7 +176,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       properties: {
         article: Object,
         publishDate: {
-          type: Number,
+          type: Object,
           notify: true
         },
 
@@ -166,7 +187,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ],
 
       renderDate(d) {
-        var nd = new Date(d)
+        var date = d;
+        if (typeof d === 'object' && d.value) {
+          date = d.value;
+        }
+        var nd = new Date(date)
         return `${nd.toLocaleDateString()} - ${nd.toLocaleTimeString()}`;
       },
 

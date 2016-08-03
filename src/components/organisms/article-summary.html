@@ -43,6 +43,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       :host .article-by-line {
         font-size: 0.8em;
       }
+
+      :host .buttons a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      :host .markdown-html img {
+        display: none;
+      }
     </style>
 
     <firebase-document
@@ -88,22 +97,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                 Read More...
               </paper-button>
             </a>
-            <template is="dom-if" if="{{checkPermission(roles.staff, user, online, owner)}}">
+            <template is="dom-if" if="{{checkPermission(roles.staff, user, online, signedIn, owner)}}">
               <a href="/article-page/[[articleId]]/edit">
-                <paper-button>
-                  Edit
-                </paper-button>
+                 <paper-icon-button icon="editor:mode-edit"></paper-icon-button>
               </a>
-              <paper-button>
-                Delete
-              </paper-button>
+              <paper-icon-button on-tap="_deleteArticle" icon="icons:delete"></paper-icon-button>
             </template>
           </div>
         </div>
 
       </div>
     </paper-material>
-
+    <paper-toast id="toaster"></paper-toast>
 
   </template>
 

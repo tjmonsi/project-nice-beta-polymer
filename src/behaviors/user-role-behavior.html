@@ -1,5 +1,6 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/app-storage/app-network-status-behavior.html">
-<link rel="import" href="../data-state-handlers/js">
+<link rel="import" href="../data-state-handlers/js/index.html">
 <script>
   (function(){
     'use strict';
@@ -9,7 +10,13 @@
       properties: {
         user: {
           type: Object,
+          notify: true,
           value: null
+        },
+        signedIn: {
+          type: Boolean,
+          notify: true,
+          value: false
         },
         roles: {
           type: Object,
@@ -55,11 +62,11 @@
         };
       },
 
-      _forceZero(a, zeroValue = false) {
+      _forceZero: function(a, zeroValue = false) {
         return typeof a === 'object' && this._isEmpty(a) ? zeroValue : a;
       },
 
-      _isEmpty(obj) {
+      _isEmpty: function(obj) {
         for(var prop in obj) {
           if(obj.hasOwnProperty(prop))
             return false;
@@ -68,7 +75,7 @@
         return true && JSON.stringify(obj) === JSON.stringify({});
       },
 
-      _setRole(a, e, s, m) {
+      _setRole: function(a, e, s, m) {
         var a1 = a && a.value;
         var e1 = e && e.value; //this._forceZero(e);
         var s1 = s && s.value; //this._forceZero(s);
@@ -80,21 +87,23 @@
         this.set('roles.member', m1 || s1 || e1 || a1);
       },
 
-      checkPermission(r, u = this.user, o = this.online, owner) {
-        // console.log(r, this)
-        return (r || (u && owner && owner.owner === u.uid)) && u && o;
+      checkPermission: function(r, u = this.user, o = this.online, s, owner) {
+        console.log(u, s, this)
+        return ((r || o) || (u && owner && owner.owner === u.uid)) && (u && u.uid) && s;
       },
 
-      signIn() {
+      signIn: function() {
         this.$.auth.signInWithPopup().then(function(result) {
           this.$.toaster.show(`Welcome ${result.user.displayName}!`);
         }.bind(this)).catch(this._catchError.bind(this));
       },
 
-      signOut() {
+      signOut: function() {
         if (this.$.auth) {
           this.$.auth.signOut().then(function() {
             this.$.toaster.show(`Goodbye!`);
+            console.log(this.user);
+            // window.location.reload();
           }.bind(this)).catch(this._catchError.bind(this));
         } else {
           this.$.toaster.show('You are already logged out.');

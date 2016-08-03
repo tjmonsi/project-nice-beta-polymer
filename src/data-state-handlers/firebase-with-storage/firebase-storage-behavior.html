@@ -1,7 +1,7 @@
-<link rel="import" href="../../../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../../../bower_components/app-storage/app-storage-behavior.html">
-<link rel="import" href="../../../../bower_components/polymerfire/firebase-common-behavior.html">
-<link rel="import" href="../../../../bower_components/polymerfire/firebase.html">
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/app-storage/app-storage-behavior.html">
+<link rel="import" href="../../../bower_components/polymerfire/firebase-common-behavior.html">
+<link rel="import" href="../../../bower_components/polymerfire/firebase.html">
 <script>
   (function() {
     'use strict';
@@ -36,7 +36,7 @@
       _setFirebaseValue: function(path, value) {
         this._log('Setting Firebase value at', path, 'to', value);
         if (value) {
-          var uploadTask = this.storageDb.ref(path).put(value);
+          var uploadTask = this.storageDb.ref(path).put(value, this.metadata);
           return uploadTask;
         } else {
           return this.storageDb.ref(path).delete();

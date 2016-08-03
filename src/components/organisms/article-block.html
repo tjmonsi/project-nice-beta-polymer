@@ -20,46 +20,64 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <style is="custom-style" include="iron-flex iron-flex-alignment">
       :host {
         width: 100%;
+        height: 100%;
       }
+      :host .article-item {
+        height: 100%;
+      }
+
       :host .article-banner {
         position: relative;
+        height: 100%;
       }
       :host .article-banner .title {
         position: absolute;
-        bottom: 20px;
-        width: 100%;
-        text-align: center;
+        top: 1em;
+        left: 1em;
         color: white;
+        padding-right: 10px;
       }
       :host .article-banner .title .sub-title {
-        width: 80%;
-        margin-left: 10%;
-        text-align: center;
         color: white;
       }
-      :host .article-banner .title h1 {
+      :host .article-banner .title h2 {
         margin-bottom: 0px;
+        margin-top: 0px;
+      }
+      :host .article-banner .title h2 a {
+        text-decoration: none;
+        color: white;
+      }
+      :host .article-banner .title h2 a:hover {
+        text-decoration: underline;
       }
       :host .article-banner iron-image {
         position: relative;
         width: 100%;
-        height: 300px;
+        height: 100%;
         background-color: black;
       }
       :host .article-banner .banner-overlay {
         position: absolute;
         width: 100%;
-        height: 300px;
+        height: 100%;
         opacity: 0.5;
         top: 0px;
         background-color: black;
       }
 
-      :host .article-body {
-        padding: 20px;
+      :host .article-by-line {
+        font-size: 0.6em;
+        padding-top: 5px;
       }
 
-      :host .article-by-line {
+      :host .buttons a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      :host .sub-title {
+        padding-right: 10px;
         font-size: 0.8em;
       }
     </style>
@@ -95,30 +113,27 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <div class="banner-overlay">
         </div>
         <div class="title">
-          <h2>{{article.title}}</h2>
+          <h2><a href="/article-page/[[articleId]]/view">{{article.title}}</a></h2>
           <div class="sub-title">
             {{article.sub_title}}
           </div>
-        </div>
-      </div>
-
-      <div class="article-body">
-        <template is="dom-if" if="{{_forceZero(publishDate)}}">
-          <div class="article-by-line">
-            Last Edited at: {{renderDate(publishDate.value)}}
+          <template is="dom-if" if="{{_forceZero(publishDate)}}">
+            <div class="article-by-line">
+              Last Edited at: {{renderDate(publishDate)}}
+            </div>
+          </template>
+          <div class="buttons">
+            <a href="/article-page/[[articleId]]/view">
+              <paper-button>Read Me</paper-button>
+            </a>
+            <template is="dom-if" if="{{checkPermission(roles.staff, user, online, signedIn, owner)}}">
+              <a href="/article-page/[[articleId]]/edit">
+                <paper-icon-button icon="editor:mode-edit"></paper-icon-button>
+              </a>
+              <paper-icon-button on-tap="_deleteArticle" icon="icons:delete"></paper-icon-button>
+            </template>
           </div>
-        </template>
-      </div>
-      <div class="">
-        <a href="/article-page/[[articleId]]/view">
-          Read Me
-        </a>
-        <template is="dom-if" if="{{checkPermission(roles.staff, user, online, owner)}}">
-          <a href="/article-page/[[articleId]]/edit">
-            <paper-button>Open Editor</paper-button>
-          </a>
-          <paper-button on-tap="_deleteArticle">Delete</paper-button>
-        </template>
+        </div>
       </div>
     </div>
     </template>
@@ -156,7 +171,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ],
 
       renderDate(d) {
-        var nd = new Date(d)
+        var date = d;
+        if (typeof d === 'object' && d.value) {
+          date = d.value;
+        }
+        var nd = new Date(date)
         return `${nd.toLocaleDateString()} - ${nd.toLocaleTimeString()}`;
       },
 

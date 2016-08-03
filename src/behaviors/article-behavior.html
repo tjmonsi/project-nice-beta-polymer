@@ -1,3 +1,4 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="main-app-behavior.html">
 <script>
   (function(){
@@ -40,16 +41,16 @@
         };
       },
 
-      _gotoArticle(pageId = '', action, name = 'New Window') {
+      _gotoArticle: function(pageId = '', action, name = 'New Window') {
         this._gotoPage('article-page', pageId, action, name);
       },
 
-      _insertNewArticle(sluggedTitle, e) {
+      _insertNewArticle: function(sluggedTitle, e) {
         if (
           sluggedTitle &&
           typeof sluggedTitle === 'string' &&
           sluggedTitle.trim().length >= 0 &&
-          this.checkPermission(this.roles.staff) &&
+          this.checkPermission(this.roles.staff, this.user, this.online, this.signedIn) &&
           this.$$('#create-new-title').value &&
           this.$$('#create-new-title').value.trim().length >= 0
         ) {
@@ -71,7 +72,7 @@
         }
       },
 
-      _deleteArticle() {
+      _deleteArticle: function() {
         if (this.articleId) {
           this.$$('#data-ref').destroy().then(function(){
             this.$$('#owner-ref').destroy().then(function(){
